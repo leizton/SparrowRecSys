@@ -1,5 +1,35 @@
 import tensorflow as tf
 
+'''
+movieId                        1
+userId                         15555
+rating                         3.0
+timestamp                      900953740
+label                          0
+releaseYear                    1995
+movieGenre1                    Adventure
+movieGenre2                    Animation
+movieGenre3                    Children
+movieRatingCount               10759
+movieAvgRating                 3.91
+movieRatingStddev              0.89
+userRatedMovie1                783
+userRatedMovie2                434
+userRatedMovie3                208
+userRatedMovie4                349
+userRatedMovie5                112
+userRatingCount                92
+userAvgReleaseYear             1992
+userReleaseYearStddev          8.98
+userAvgRating                  3.86
+userRatingStddev               0.74
+userGenre1                     Drama
+userGenre2                     Comedy
+userGenre3                     Thriller
+userGenre4                     Action
+userGenre5                     Crime
+'''
+
 # Training samples path, change to your local path
 training_samples_file_path = tf.keras.utils.get_file("trainingSamples.csv",
                                                      "file:///Users/zhewang/Workspace/SparrowRecSys/src/main"
@@ -43,6 +73,7 @@ GENRE_FEATURES = {
 }
 
 # all categorical features
+# [userId, movieId, userGenreX, movieGenreX]
 categorical_columns = []
 for feature, vocab in GENRE_FEATURES.items():
     cat_col = tf.feature_column.categorical_column_with_vocabulary_list(
@@ -53,7 +84,6 @@ for feature, vocab in GENRE_FEATURES.items():
 movie_col = tf.feature_column.categorical_column_with_identity(key='movieId', num_buckets=1001)
 movie_emb_col = tf.feature_column.embedding_column(movie_col, 10)
 categorical_columns.append(movie_emb_col)
-
 # user id embedding feature
 user_col = tf.feature_column.categorical_column_with_identity(key='userId', num_buckets=30001)
 user_emb_col = tf.feature_column.embedding_column(user_col, 10)
@@ -104,6 +134,7 @@ deep = tf.keras.layers.Dense(128, activation='relu')(deep)
 # wide part for cross feature
 wide = tf.keras.layers.DenseFeatures(crossed_feature)(inputs)
 both = tf.keras.layers.concatenate([deep, wide])
+# Dense(1, )表示output_layer输出维度是1, 即(batch_size,1)
 output_layer = tf.keras.layers.Dense(1, activation='sigmoid')(both)
 model = tf.keras.Model(inputs, output_layer)
 
